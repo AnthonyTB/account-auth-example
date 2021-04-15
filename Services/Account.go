@@ -4,50 +4,48 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/anthonytb/account-auth-example/db"
+	"github.com/anthonytb/account-auth-example/DB"
 )
 
 type User struct {
 	id         int
-	Name       string
-	Email      string
-	Password   string
+	Name       string `json:"Name" validate:"min=1"`
+	Email      string `json:"Email" validate:"min=1"`
+	Password   string `json:"Password" validate:"min=1"`
 	created_at string
 }
 
-func CreateAccount(user User) {
-	database, dbErr := db.InitDB()
-
-	fmt.Println("User Creation:", user)
+func CreateAccount(user User) error {
+	database, dbErr := DB.InitDB()
 
 	if dbErr != nil {
-		log.Fatal("Database connection failed")
+		return dbErr
 	}
 
 	_, insertErr := database.Exec("INSERT INTO users(Name,Email,Password) VALUES($1, $2, $3)", user.Name, user.Email, user.Password)
 
 	if insertErr != nil {
-		log.Fatal("Error inserting in database table", insertErr)
+		return insertErr
 	}
+
+	return nil
 }
 
 func GetUser(constraint string, constraintVal string) *User {
 	var user User
-	var userPointer *User
+	var userPointer *User = &user
 
-	database, dbErr := db.InitDB()
+	database, dbErr := DB.InitDB()
 
 	if dbErr != nil {
 		log.Fatal("Database connection failed")
 	}
 
-	queryErr := database.QueryRow("SELECT * FROM users WHERE $1=$2", constraint, constraintVal).Scan(&user.id, &user.Name, &user.Email, &user.Password, &user.created_at)
+	queryErr := database.QueryRow(fmt.Sprintf("SELECT * FROM users WHERE %s = $1;", constraint), constraintVal).Scan(&user.id, &user.Name, &user.Email, &user.Password, &user.created_at)
 
 	if queryErr != nil {
-		user = User{}
+		return nil
 	}
-
-	fmt.Println("user found", user)
 
 	return userPointer
 }
