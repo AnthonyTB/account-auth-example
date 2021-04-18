@@ -7,6 +7,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Function for returning enviroment varibles
+// Params: varibleKey <string>
+// Returns: enviromentVariableValue<string> or logs error if issue loading env
 func GoDotEnvVariable(key string) string {
 
 	// load .env file
